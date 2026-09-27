@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WIFI Meet — Your meetings. Your network.</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="boot" aria-hidden="true">
+  <div class="slides"><div class="slide" id="bootSlide"></div></div>
+  <canvas class="draw"></canvas>
+</div>
+
+<header>
+  <div class="brand">
+    <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5a11 11 0 0 1 15 0"/><path d="M8 9.3a6 6 0 0 1 8 0"/><circle cx="12" cy="14.8" r="2.4"/><path d="M5.5 21c.7-3.2 3.2-5 6.5-5s5.8 1.8 6.5 5"/></svg></span>
+    <b>WIFI Meet</b>
+  </div>
+  <div class="room-head" id="roomHead" style="display:none">
+    <button class="code-btn" id="roomCodeBtn" title="Copy meeting code">
+      <span id="roomCode">······</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="notice" id="notice"></div>
+
+<main id="mainHome">
+
+  <!-- ============ HOME (darkened, centered popup) ============ -->
+  <section class="view show" id="view-home">
+    <div class="home-bg">
+      <h1>WIFI Meet</h1>
+      <p class="tag">Your meetings. Your network.</p>
+    </div>
+    <div class="home-scrim"></div>
+    <div class="meet-modal">
+      <div class="meet-tabs">
+        <button class="mtab active" id="tabJoin">Join Meeting</button>
+        <button class="mtab" id="tabCreate">Create Meeting</button>
+      </div>
+      <div class="pane show" id="paneJoin">
+        <label for="joinCode">Meeting code</label>
+        <input class="input code" id="joinCode" maxlength="6" placeholder="······" autocomplete="off" />
+        <label for="joinName">Your display name</label>
+        <input class="input" id="joinName" maxlength="24" placeholder="e.g. Omar" autocomplete="off" />
+        <button class="btn-primary btn-block" id="joinBtn">Join Meeting →</button>
+        <div class="err" id="joinErr"></div>
+      </div>
+      <div class="pane" id="paneCreate">
+        <label for="createName">Your display name</label>
+        <input class="input" id="createName" maxlength="24" placeholder="e.g. Amira" autocomplete="off" />
+        <button class="btn-primary btn-block" id="createBtn">Create Meeting →</button>
+        <div class="err" id="createErr"></div>
+      </div>
+      <p class="hint">Same WiFi only · No accounts · Nothing leaves your network</p>
+    </div>
+  </section>
+
+  <!-- ============ MEETING PAGE (same for host and guests) ============ -->
+  <section class="view" id="view-lobby">
+    <div class="view-head"><button class="back" id="lobbyBack">← Back</button><h2 id="lobbyTitle">Your meeting is ready</h2></div>
+    <div class="meet-code-box">
+      <small>Meeting code</small>
+      <div class="meet-code" id="lobbyCode">······</div>
+      <div class="meet-code-row">
+        <button class="btn-secondary" id="copyCode" style="padding:9px 18px">Copy code</button>
+        <button class="btn-secondary" id="copyLink" style="padding:9px 18px">Copy link</button>
+      </div>
+    </div>
+    <div class="share-box">
+      <b>Share on this WiFi</b>
+      <p class="hint">Anyone on the <b style="color:#fff">same WiFi network</b> can open the link below or scan the QR.</p>
+      <code id="shareAddr">…</code>
+      <div class="share-flex"><img id="shareQr" alt="QR code with meeting address" /><p class="hint">No cloud. No account.</p></div>
+    </div>
+    <div class="card">
+      <h2>In this meeting <span id="lobbyCount" style="color:#a3a3a3"></span></h2>
+      <p id="lobbyHint">Share the code — start when everyone is here.</p>
+      <div class="people" id="lobbyList" style="max-height:none"></div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn-primary" id="startBtn">Start meeting →</button>
+        <button class="btn-danger" id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ ROOM ============ -->
+<section class="view" id="view-room">
+  <div class="room-wrap">
+    <div class="waiting-bar" id="waitingBar" style="display:none">Waiting for the host to start the meeting — chat works meanwhile.</div>
+    <div class="fallback-banner" id="mediaFallback">Camera/microphone unavailable — you joined in <b>chat mode</b>. Chat and listening still work.</div>
+    <div class="tiles" id="tiles"></div>
+    <div class="room-cols">
+      <div class="room-stage-note" id="emptyHint" style="display:none">You are the only one here. Share the code <b id="emptyCode"></b> so others on this WiFi can join.</div>
+      <aside class="side" id="sidePanel">
+        <div class="tabs">
+          <button id="tabPeople" class="active">People</button>
+          <button id="tabChat">Chat <span id="unread" style="display:none;background:#fff;color:#000;border-radius:9999px;padding:0 7px;font-size:11px">0</span></button>
+        </div>
+        <div class="people" id="peopleList"></div>
+        <div class="chatbox">
+          <div class="chatlog" id="chatLog"></div>
+          <form class="chat-form" id="chatForm"><input id="chatInput" maxlength="1000" placeholder="Message everyone…" autocomplete="off" /><button class="btn-primary" style="padding:10px 16px">Send</button></form>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <div class="controlbar">
+    <button class="ctl" id="micBtn"><span class="ic"></span><span class="lbl">Mic on</span></button>
+    <button class="ctl" id="camBtn"><span class="ic"></span><span class="lbl">Cam on</span></button>
+    <button class="ctl" id="shareBtn"><span class="ic"></span><span class="lbl">Share</span></button>
+    <button class="ctl" id="chatToggle"><span class="ic"></span><span class="lbl">Chat</span></button>
+    <button class="ctl" id="peopleToggle"><span class="ic"></span><span class="lbl">People</span></button>
+    <button class="ctl" id="hostStartBtn" style="display:none"><span class="ic"></span><span class="lbl">Start</span></button>
+    <button class="ctl" id="hostEndBtn" style="display:none"><span class="ic"></span><span class="lbl">End</span></button>
+    <button class="ctl leave" id="leaveBtn"><span class="ic"></span><span class="lbl">Leave</span></button>
+  </div>
+</section>
+
+<footer>Same WiFi. No cloud. No account. · WIFI Meet keeps media peer-to-peer on your local network.</footer>
+<script src="loading/ps-0.9.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

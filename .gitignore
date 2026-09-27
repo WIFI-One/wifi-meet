@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime / local data (nothing persistent is written by the server;
+# if that ever changes, keep user data out of git)
+*.local
+
+# Environment
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# npm is canonical — never add pnpm/yarn/bun lockfiles
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
